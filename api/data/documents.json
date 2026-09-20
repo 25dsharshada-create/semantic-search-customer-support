@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "text": "Where is my order?",
+    "category": "Order Tracking",
+    "importance": "High"
+  },
+  {
+    "id": 2,
+    "text": "I want to return my product.",
+    "category": "Return / Exchange",
+    "importance": "Medium"
+  },
+  {
+    "id": 3,
+    "text": "My payment was unsuccessful.",
+    "category": "Payment Issue",
+    "importance": "High"
+  },
+  {
+    "id": 4,
+    "text": "When will I get my refund back?",
+    "category": "Refund Status",
+    "importance": "High"
+  }
+]
