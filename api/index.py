@@ -249,12 +249,11 @@ async function search() {
 
         output.innerHTML = html;
 
-    } catch (e) {
+} catch (e) {
 
-        error.textContent =
-        "Could not connect to the semantic search API.";
+    error.textContent = "Error: " + e.message;
 
-    }
+}
 
 }
 
