@@ -54,13 +54,215 @@ def get_embedding(text):
     return np.array(result)
 
 
-@app.get("/")
+
+from fastapi.responses import HTMLResponse
+
+@app.get("/", response_class=HTMLResponse)
 def home():
-    return {
-        "message": "Semantic Search API is running!"
+    return """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer Support Semantic Search</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 850px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f7f7f7;
+        }
+
+        h1 {
+            color: #222;
+        }
+
+        .sub {
+            color: #666;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            font-size: 16px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        button {
+            padding: 12px 25px;
+            margin-top: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background: #111;
+            color: white;
+            font-size: 16px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 18px;
+            margin-top: 20px;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 12px;
+            background: #eee;
+            margin-right: 6px;
+        }
+
+        .result {
+            border-top: 1px solid #eee;
+            padding: 12px 0;
+        }
+
+        #error {
+            color: #b00020;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>Customer Support Semantic Search</h1>
+
+<p class="sub">
+Enter a customer message and the system finds the closest meaning
+from the document corpus.
+</p>
+
+<textarea id="query"
+placeholder="Example: My card payment did not go through"></textarea>
+
+<br>
+
+<button onclick="search()">Search</button>
+
+<div id="error"></div>
+<div id="output"></div>
+
+<script>
+
+async function search() {
+
+    const query = document.getElementById("query").value.trim();
+
+    const output = document.getElementById("output");
+    const error = document.getElementById("error");
+
+    output.innerHTML = "";
+    error.textContent = "";
+
+    if (!query) {
+        error.textContent = "Please enter a customer message.";
+        return;
     }
 
+    try {
 
+        const res = await fetch("/search", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                query: query,
+                top_k: 3
+            })
+
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            error.textContent = data.detail || "Search failed.";
+            return;
+        }
+
+        let html = `
+        <div class="card">
+
+            <h2>Prediction</h2>
+
+            <p>
+                <b>Category:</b>
+                ${data.predicted_category}
+            </p>
+
+            <p>
+                <b>Importance:</b>
+                <span class="tag">
+                    ${data.importance}
+                </span>
+            </p>
+
+            <p>
+                <b>Confidence:</b>
+                <span class="tag">
+                    ${data.confidence}
+                </span>
+            </p>
+
+        </div>
+
+        <div class="card">
+
+            <h2>Top Semantic Matches</h2>
+        `;
+
+        data.results.forEach((r, index) => {
+
+            html += `
+            <div class="result">
+
+                <b>#${index + 1}</b>
+
+                <p>${r.text}</p>
+
+                <span class="tag">
+                    ${r.category}
+                </span>
+
+                <span class="tag">
+                    Similarity: ${r.similarity}
+                </span>
+
+            </div>
+            `;
+
+        });
+
+        html += `</div>`;
+
+        output.innerHTML = html;
+
+    } catch (e) {
+
+        error.textContent =
+        "Could not connect to the semantic search API.";
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>
+"""
 @app.post("/search")
 def semantic_search(request: QueryRequest):
 
